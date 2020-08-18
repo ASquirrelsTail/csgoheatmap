@@ -8,6 +8,8 @@
   let canvas;
   let heat;
 
+  let displaySetting = 'heat'
+
   let scale = 10;
   let offsetX = 204;
   let offsetY = 387;
@@ -18,9 +20,24 @@
     heat.max(density);
   });
 
+  function drawPoints() {
+    const ctx = canvas.getContext('2d');
+    ctx.fillStyle = 'white';
+    ctx.globalAlpha = 1;
+    ctx.globalCompositeOperation = 'source-over';
+    ctx.clearRect(0, 0, 500, 500);
+    $points.forEach(point => {
+      ctx.fillRect(Math.floor(point.x/scale + offsetX), Math.floor(-point.y/scale + offsetY), 1, 1);
+    });
+  }
+
   $: if(heat && $points) { // If points changes redraw
-    heat.data($points.map(point => [point.x/scale + offsetX, -point.y/scale + offsetY, 1]));
-    heat.draw();
+    if (displaySetting === 'heat') {
+      heat.data($points.map(point => [point.x/scale + offsetX, -point.y/scale + offsetY, 1]));
+      heat.draw();
+    } else drawPoints();
+    
+    
   }
 
   $: if ($mapName && mapData[$mapName]) { // If map changes update scale and offset
@@ -31,7 +48,7 @@
 
   $: if (heat) {
     heat.max(density); // If density changes redraw
-    heat.draw();
+    if (displaySetting === 'heat') heat.draw();
   }
 
 </script>
@@ -39,6 +56,17 @@
 <div>
   <canvas width=500 height=500 bind:this={canvas}
   style="background-image: {mapData[$mapName] ? `url(./images/${$mapName}.jpg)` : 'none'};"></canvas>
+</div>
+
+<div class="settings">
+  <select name="display" bind:value={displaySetting}>
+    <option value="heat">Heatmap</option>
+    <option value="points">Points</option>
+  </select>
+  {#if displaySetting === 'heat'}
+  <button on:click="{() => density += 1}">Gain Down</button>
+  <button on:click="{() => density = Math.max(density - 1, 2)}">Gain Up</button>
+  {/if}
 </div>
 
 <div id="scales">
@@ -52,6 +80,10 @@
   canvas {
     background-size: cover;
     background-color: black;
+  }
+
+  #scales {
+    display: none;
   }
 
   #scales input {
