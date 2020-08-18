@@ -2,6 +2,7 @@
 	import Upload from './svelte/Upload.svelte';
 	import HeatMap from './svelte/HeatMap.svelte';
 	import Filters from './svelte/Filters.svelte';
+	import Toasts from './svelte/Toasts.svelte';
 </script>
 
 <main>
@@ -12,6 +13,8 @@
 	  <HeatMap />
 	</div>
 </main>
+
+<Toasts />
 
 <style>
 	main {

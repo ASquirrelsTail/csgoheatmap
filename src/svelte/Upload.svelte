@@ -1,6 +1,6 @@
 <script>
   import parseFile from '../utils/parseFile.js';
-  import { parsedFiles, mapName } from '../store.js'
+  import { parsedFiles, mapName, toasts } from '../store.js'
   
   let form;
   let files;
@@ -11,14 +11,21 @@
     const filePromises = [...files]
       .filter(file => !$parsedFiles.some(parsed => parsed.fileName === file.name)) // Check files haven't already been parsed, then parse them
       .map(file => parseFile(file));
-    Promise.all(filePromises)
-      .then(finishedFiles => finishedFiles.forEach(file => $parsedFiles.push(file)))
-      .then(() => {
+    filePromises.forEach(filePromise => filePromise.then(file => {
+      $parsedFiles.push(file);
+      $parsedFiles = $parsedFiles;
+      toasts.push(`Successfuly finished parsing ${file.fileName}.`, 'success');
+    }));
+    Promise.allSettled(filePromises)
+      .then(finishedFiles => {
         parsing = false;
-        $parsedFiles = $parsedFiles;
-        // Set the map if it's not set
-        if (!$mapName && $parsedFiles.length > 0) $mapName = $parsedFiles[0].mapName;
         form.reset();
+
+        const succededFiles = finishedFiles.filter(result => result.status === 'fulfilled').length;
+        const failedFiles = finishedFiles.length - succededFiles;
+        toasts.push(`Successfuly parsed ${succededFiles} files.`, 'success');
+        if (failedFiles) toasts.push(`Failed to parse ${failedFiles} files.`, 'error');
+
         // Store all/updated parsed files to storage
         localStorage.setItem('parsedFiles', JSON.stringify($parsedFiles));
       });
