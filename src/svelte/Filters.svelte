@@ -9,52 +9,54 @@
   let selectedPlayer;
   let group = 0;
 
-  let kills = false;
-  let team;
+  let metric = 2;
+  let team = false;
 
   function filterMaps(files) {
     return files.filter(file => file.mapName === $mapName);
   }
 
-  function filterPlayer(files) {
+  function runFilters() {
+    filesToFilter = selectedFiles.length ? selectedFiles : $parsedFiles;
+    const metricSet = metric % 2 ? 'hits' : 'deaths';
+    const dealt = !Math.floor(metric / 2);
+    const role = dealt ? 'a' : 'p';
+
+    // Select events type, deaths/hits and team, t/ct/all
+    let events;
+    if (team === false) // Use all team data
+      events = filterMaps(filesToFilter).map(file => file[metricSet][0].concat(file[metricSet][1]));
+    else // Select team
+      events = filterMaps(filesToFilter).map(file => file[metricSet][(dealt + team) % 2]); // Invert team if we are looking at damage dealt
+
+    // If a specific player is selected
     if (selectedPlayer) {
-      if (group === 0) {
-        let  deaths = [].concat(...files.map(file => file.deaths));
-        if (kills) return deaths.filter(death => death.killer === selectedPlayer);
-        else return deaths.filter(death => death.player === selectedPlayer);
-      }else{
-        return [].concat(...files.filter(file => selectedPlayer in file.players).map(file => {
+      if (group === 0) $points = [].concat(...events).filter(event => event[role] === selectedPlayer);
+      else {
+        $points = [].concat(...filterMaps(filesToFilter)
+                    .filter(file => selectedPlayer in file.players)
+                    .map(file => {
           let playerTeam;
           if (group === 1) playerTeam = file.players[selectedPlayer].team;
           else playerTeam = (file.players[selectedPlayer].team + 1) % 2;
           let teamPlayers = Object.keys(file.players)
                                   .filter(playerId => file.players[playerId].team === playerTeam)
                                   .map(playerId => parseInt(playerId));
-          if (kills)
-            return file.deaths.filter(death => teamPlayers.includes(death.killer))
-          else
-            return file.deaths.filter(death => teamPlayers.includes(death.player))
+          if (team === false) // Use all team data
+            return file[metricSet][0].concat(file[metricSet][1])
+                                     .filter(event => teamPlayers.includes(event[role]));
+          else // Select team
+            return file[metricSet][(dealt + team) % 2].filter(event => teamPlayers.includes(event[role])); 
         }));
       }
-    } else return [].concat(...files.map(file => file.deaths));
-  }
-
-  function filterTeam(deaths) {
-    if (team === 0 || team === 1) return deaths.filter(death => death.playerTeam === (kills + team) % 2);
-    else return deaths;
-  }
-
-  function runFilters() {
-    filesToFilter = selectedFiles.length ? selectedFiles : $parsedFiles;
-    $points = filterTeam(filterPlayer(filterMaps(filesToFilter)))
-                .map(death => death.position)
+    }else $points = [].concat(...events)
   }
 
   $: {
     filesToFilter = selectedFiles.length ? selectedFiles : $parsedFiles;
     maps = new Set(filesToFilter.map(file => file.mapName));
     if ((!$mapName || !maps.has($mapName)) && filesToFilter.length > 0) $mapName = filesToFilter[0].mapName;
-    players = Object.entries(Object.assign({}, ...filesToFilter.map(file => file.players)))
+    players = Object.entries(Object.assign({}, ...filterMaps(filesToFilter).map(file => file.players)))
       .map(player => { return {id: parseInt(player[0]), name: player[1].name}})
       .filter(player => player.id > 40);
     if (!players.some(player => player.id === selectedPlayer)) selectedPlayer = false;
@@ -101,14 +103,17 @@
 
 <br>
 
-<button on:click="{() => {kills = true; runFilters()}}" class:selected={kills}>Kills</button>
-<button on:click="{() => {kills = false; runFilters()}}" class:selected={!kills}>Deaths</button>
+<button on:click="{() => {metric = 0; runFilters()}}" class:selected="{metric === 0}">Kills</button>
+<button on:click="{() => {metric = 1; runFilters()}}" class:selected="{metric === 1}">Damage Dealt</button>
+<br>
+<button on:click="{() => {metric = 2; runFilters()}}" class:selected="{metric === 2}">Deaths</button>
+<button on:click="{() => {metric = 3; runFilters()}}" class:selected="{metric === 3}">Damage Taken</button>
 
 <br>
 
 <button on:click="{() => {team = 0; runFilters()}}" class:selected="{team === 0}">T</button>
 <button on:click="{() => {team = 1; runFilters()}}" class:selected="{team === 1}">CT</button>
-<button on:click="{() => {team = null; runFilters()}}" class:selected="{team !== 0 && team !== 1}">All</button>
+<button on:click="{() => {team = false; runFilters()}}" class:selected="{team === false}">All</button>
 
 <style>
   .selected {

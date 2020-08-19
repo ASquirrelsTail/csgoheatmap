@@ -3,7 +3,7 @@ import demofile from 'demofile';
 
 export default function parseFile(file) {
   return new Promise((resolve, reject) => {
-    const parsedFile = {fileName: file.name, deaths: [], players: {}};
+    const parsedFile = {fileName: file.name, deaths: [[], []], hits: [[], []],  players: {}};
 
     const demoFile = new demofile.DemoFile();
     let matchStart = false;
@@ -48,13 +48,34 @@ export default function parseFile(file) {
     demoFile.gameEvents.on('player_death', e => {
       if (matchStart) {
         const player = demoFile.entities.getByUserId(e.userid);
-        if (player) 
-          parsedFile.deaths.push({
-            player: playerInfo[e.userid].steam,
-            playerTeam: playerInfo[e.userid].team,
-            killer: e.attacker !== 0 ? playerInfo[e.attacker].steam : null,
-            position: {x: player.position.x, y: player.position.y},
+        if (player && playerInfo[e.userid].team >= 0) {
+          const killer = demoFile.entities.getByUserId(e.attacker);
+          parsedFile.deaths[playerInfo[e.userid].team].push({
+            p: playerInfo[e.userid].steam,
+            a: e.attacker !== 0 ? playerInfo[e.attacker].steam : null,
+            pp: [parseInt(player.position.x), parseInt(player.position.y)],
+            ap: killer && e.weapon !== 'inferno' && e.weapon !== 'hegrenade' ?
+              [parseInt(killer.position.x), parseInt(killer.position.y)] : null,
           });
+        }
+      }
+    });
+    
+    // And damage
+    demoFile.gameEvents.on('player_hurt', e => {
+      if (matchStart) {
+        const player = demoFile.entities.getByUserId(e.userid);
+        if (player && playerInfo[e.userid].team >= 0) {
+          const killer = demoFile.entities.getByUserId(e.attacker);
+          parsedFile.hits[playerInfo[e.userid].team].push({
+            p: playerInfo[e.userid].steam,
+            a: e.attacker !== 0 ? playerInfo[e.attacker].steam : null,
+            d: e.dmg_health,
+            pp: [parseInt(player.position.x), parseInt(player.position.y)],
+            ap: killer && e.weapon !== 'inferno' && e.weapon !== 'hegrenade' ?
+              [parseInt(killer.position.x), parseInt(killer.position.y)] : null,
+          });
+        }
       }
     });
 
