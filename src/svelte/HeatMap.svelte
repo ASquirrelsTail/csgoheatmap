@@ -113,7 +113,6 @@
     Gain Reset
   </button>
 </div>
-{gain.heat} {gain.shots}
 
 <div id="scales">
   <label for="scale">Scale:</label><input type="number" id="scale" bind:value={scale}>
@@ -126,6 +125,7 @@
   canvas {
     background-size: cover;
     background-color: black;
+    border-radius: 1rem;
   }
 
   #scales {

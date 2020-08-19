@@ -5,6 +5,10 @@
 	import Toasts from './svelte/Toasts.svelte';
 </script>
 
+<h1>CSGO Scopes</h1>
+
+<hr>
+
 <main>
 	<Upload />
 	<Filters />
@@ -19,21 +23,20 @@
 <style>
 	main {
 		text-align: center;
-		padding: 1em;
-		max-width: 240px;
+		max-width: 1200px;
 		margin: 0 auto;
 	}
 
 	h1 {
 		color: #ff3e00;
+		padding-left: 1rem;
 		text-transform: uppercase;
 		font-size: 4em;
 		font-weight: 100;
+		margin: 0;
 	}
 
-	@media (min-width: 640px) {
-		main {
-			max-width: none;
-		}
+	hr {
+		margin-top: 0;
 	}
 </style>

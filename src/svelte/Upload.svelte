@@ -40,8 +40,6 @@
   <button on:click|preventDefault="{() => form.reset()}" disabled={parsing}>Clear</button>
 </form>
 
-
-
 <style>
   #upload-form {
     position: relative;

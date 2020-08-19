@@ -114,9 +114,3 @@
 <button on:click="{() => {team = 0; runFilters()}}" class:selected="{team === 0}">T</button>
 <button on:click="{() => {team = 1; runFilters()}}" class:selected="{team === 1}">CT</button>
 <button on:click="{() => {team = false; runFilters()}}" class:selected="{team === false}">All</button>
-
-<style>
-  .selected {
-    background-color: #99ff66;
-  }
-</style>

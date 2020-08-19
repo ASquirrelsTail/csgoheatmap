@@ -5,9 +5,10 @@ html, body {
 }
 
 body {
-	color: #333;
+	background-color: #374a50;
+	color: #ccc;
 	margin: 0;
-	padding: 8px;
+	padding: 0;
 	box-sizing: border-box;
 	font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif;
 }
@@ -36,28 +37,60 @@ input, button, select, textarea {
 	padding: 0.4em;
 	margin: 0 0 0.5em 0;
 	box-sizing: border-box;
-	border: 1px solid #ccc;
+	border: 1px solid #666;
 	border-radius: 2px;
 }
 
 input:disabled {
-	color: #ccc;
+	color: #777;
 }
 
 button {
-	color: #333;
-	background-color: #f4f4f4;
+	color: #ccc;
+	background-color: #273233;
 	outline: none;
 }
 
 button:disabled {
-	color: #999;
+	color: #777;
+	background-color: #565656;
 }
 
 button:not(:disabled):active {
-	background-color: #ddd;
+	background-color: #424b50;
 }
 
 button:focus {
 	border-color: #666;
+}
+
+button.selected {
+	background-color: #1b7bab;
+	border-color: #173288;
+}
+
+select {
+	background-color: #283c3e;
+	color: #aaa;
+}
+
+select:-internal-list-box:focus option:checked:enabled:hover {
+	background-color: #1b7bab;
+}
+
+hr {
+	border: 1px solid #273233;
+}
+
+.toast {
+	background-color: #283c3e;
+	color: #ccc;
+	border: 1px solid #666;
+	border-radius: 2px;
+	margin-left: auto;
+	margin-bottom: 0.2rem;
+}
+
+.toast.error {
+	background-color: #a53511;
 }
