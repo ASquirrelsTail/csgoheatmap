@@ -11,24 +11,35 @@
     const filePromises = [...files]
       .filter(file => !$parsedFiles.some(parsed => parsed.fileName === file.name)) // Check files haven't already been parsed, then parse them
       .map(file => parseFile(file));
-    filePromises.forEach(filePromise => filePromise.then(file => {
-      $parsedFiles.push(file);
-      $parsedFiles = $parsedFiles;
-      toasts.push(`Successfuly finished parsing ${file.fileName}.`, 'success');
-    }));
-    Promise.allSettled(filePromises)
-      .then(finishedFiles => {
-        parsing = false;
-        form.reset();
 
-        const succededFiles = finishedFiles.filter(result => result.status === 'fulfilled').length;
-        const failedFiles = finishedFiles.length - succededFiles;
-        toasts.push(`Successfuly parsed ${succededFiles} files.`, 'success');
-        if (failedFiles) toasts.push(`Failed to parse ${failedFiles} files.`, 'error');
+    if (filePromises.length < files.length)
+      toasts.push(`${files.length - filePromises.length} demos already parsed.`, 'success');
+    if (filePromises.length > 0) {
+      toasts.push(`Parsing ${filePromises.length} files...`, 'success');
 
-        // Store all/updated parsed files to storage
-        localStorage.setItem('parsedFiles', JSON.stringify($parsedFiles));
-      });
+      filePromises.forEach(filePromise => filePromise.then(file => {
+        $parsedFiles.push(file);
+        $parsedFiles = $parsedFiles;
+        toasts.push(`Successfuly finished parsing ${file.fileName}.`, 'success');
+      }));
+      Promise.allSettled(filePromises)
+        .then(finishedFiles => {
+          parsing = false;
+          form.reset();
+
+          const succededFiles = finishedFiles.filter(result => result.status === 'fulfilled').length;
+          const failedFiles = finishedFiles.length - succededFiles;
+          toasts.push(`Successfuly parsed ${succededFiles} files.`, 'success');
+          if (failedFiles) toasts.push(`Failed to parse ${failedFiles} files.`, 'error');
+
+          // Store all/updated parsed files to storage
+          localStorage.setItem('parsedFiles', JSON.stringify($parsedFiles));
+        });
+    } else {
+      parsing = false;
+      form.reset();
+    }
+    
   }
 
 </script>
