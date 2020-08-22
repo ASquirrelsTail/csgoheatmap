@@ -21,7 +21,7 @@
       filePromises.forEach(filePromise => filePromise.then(file => {
         $parsedFiles.push(file);
         $parsedFiles = $parsedFiles;
-        toasts.push(`Successfuly finished parsing ${file.fileName}.`, 'success');
+        toasts.push(`Successfully finished parsing ${file.fileName}.`, 'success');
       }).catch(error => toasts.push(error, 'error')));
       Promise.allSettled(filePromises)
         .then(finishedFiles => {
@@ -30,7 +30,7 @@
 
           const succededFiles = finishedFiles.filter(result => result.status === 'fulfilled').length;
           const failedFiles = finishedFiles.length - succededFiles;
-          toasts.push(`Successfuly parsed ${succededFiles} files.`, 'success');
+          toasts.push(`Successfully parsed ${succededFiles} files.`, 'success');
           if (failedFiles) toasts.push(`Failed to parse ${failedFiles} files.`, 'error');
 
           // Store all/updated parsed files to storage
@@ -54,8 +54,9 @@
 <svelte:body on:dragenter|preventDefault="{() => dragging = true}"
   on:dragover|preventDefault="{() => dragging = true}"/>
 
-<form id="upload-form" class:spinner={parsing} bind:this={form}>
-  <label for="file-upload">Upload demo files
+<form id="upload-form" bind:this={form}>
+  <label for="file-upload" class:spinner={parsing}>
+    Upload{#if parsing}ing{/if} demo files
     <input type="file" accept=".dem" id="file-upload" multiple
       disabled={parsing} on:change="{e => addFiles(e.target.files)}">
   </label>
@@ -99,6 +100,36 @@
     margin: 0;
   }
 
+  label.spinner {
+    color: #999;
+    background-color: #565656;
+  }
+
+  @keyframes dots {
+    0% {
+      content: '';
+    }
+    25% {
+      content: '.';
+    }
+    50% {
+      content: '..';
+    }
+    75% {
+      content: '...';
+    }
+  }
+
+  label.spinner:after {
+    display: inline-block;
+    content: '...';
+    margin-left: -0.3em;
+    width: 1em;
+    animation-duration: 1.2s;
+    animation-name: dots;
+    animation-iteration-count: infinite;
+  }
+
   #drag-files {
     position: fixed;
     top: 0px;
@@ -130,34 +161,5 @@
     margin: -0.3em;
     text-align: center;
     font-size: 6em;
-  }
-
-  @keyframes pulse {
-    from {
-      width: 2em;
-      height: 2em;
-    }
-
-    to {
-      width: 5em;
-      height: 5em;
-    }
-  }
-
-  #upload-form.spinner:before {
-    content: '';
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    width: 4em;
-    height: 4em;
-    border-radius: 50%;
-    background-color: rgba(100, 100, 100, 0.5);
-    transform: translate(-50%, -50%);
-    animation-duration: 0.4s;
-    animation-name: pulse;
-    animation-iteration-count: infinite;
-    animation-direction: alternate;
-    animation-timing-function: ease-in-out;
   }
 </style>

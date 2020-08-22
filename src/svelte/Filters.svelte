@@ -193,13 +193,13 @@
         <span class="no">
           {games}
         </span>
-        games {#if wins !== false}({wins} win{wins > 1 ? 's' : ''}){/if}
+        games {#if wins !== false}({wins} win{wins !== 1 ? 's' : ''}){/if}
       </div>
       <div class="stat">
         <span class="no">
           {rounds}
         </span>
-        rounds {#if roundWins !== false}({roundWins} win{roundWins > 1 ? 's' : ''}){/if}
+        rounds {#if roundWins !== false}({roundWins} win{roundWins !== 1 ? 's' : ''}){/if}
       </div>
     </div>
   </div>

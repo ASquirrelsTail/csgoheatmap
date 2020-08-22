@@ -91,7 +91,7 @@ export default function parseFile(file) {
         parsedFile.players[player.steam] = {name: player.name, team: player.team};
       });
       const teams = demoFile.teams.slice(2);
-      parsedFile.winner = teams[0].score > teams[1].score ? 0 : teams[0].score > teams[1].score ? 1 : 2;
+      parsedFile.winner = teams[0].score > teams[1].score ? 0 : teams[0].score < teams[1].score ? 1 : 2;
       parsedFile.scores[0].t = teams[0].score - parsedFile.scores[0].ct;
       parsedFile.scores[1].ct = teams[1].score - parsedFile.scores[1].t;
       
