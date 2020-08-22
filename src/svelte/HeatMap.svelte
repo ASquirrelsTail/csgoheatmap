@@ -90,42 +90,60 @@
 
 </script>
 
-<div>
+<div id="container">
   <canvas width=500 height=500 bind:this={canvas}
   style="background-image: {mapData[$mapName] ? `url(./images/${$mapName}.jpg)` : 'none'};"></canvas>
+  <div id="settings">
+    <select name="display" id="display-mode" bind:value={displaySetting}>
+      <option value="heat">Heatmap</option>
+      <option value="shots">Shots</option>
+      <option value="points">Points</option>
+    </select>
+    <button on:click="{() => gain[displaySetting] += 1}" disabled="{displaySetting === 'points'}">
+      Gain Down
+    </button>
+    <button on:click="{() => gain[displaySetting] = Math.max(gain[displaySetting] - 1, 2)}"
+       disabled="{displaySetting === 'points'}">
+      Gain Up
+    </button>
+    <button on:click="{() => gain[displaySetting] = displaySetting === 'heat' ? 3 : 8}"
+      disabled="{displaySetting === 'points'}">
+      Gain Reset
+    </button>
+  </div>
+  <div id="scales">
+    <label for="scale">Scale:</label><input type="number" id="scale" bind:value={scale}>
+    <label for="offset-x">Offset X:</label><input type="number" id="offset-x" bind:value={offsetX}>
+    <label for="offset-y">Offset Y:</label><input type="number" id="offset-y" bind:value={offsetY}>
+    <label for="gain">Gain:</label><input type="number" id="gain" bind:value={gain}>
+  </div>
 </div>
 
-<div class="settings">
-  <select name="display" bind:value={displaySetting}>
-    <option value="heat">Heatmap</option>
-    <option value="shots">Shots</option>
-    <option value="points">Points</option>
-  </select>
-  <button on:click="{() => gain[displaySetting] += 1}" disabled="{displaySetting === 'points'}">
-    Gain Down
-  </button>
-  <button on:click="{() => gain[displaySetting] = Math.max(gain[displaySetting] - 1, 2)}"
-     disabled="{displaySetting === 'points'}">
-    Gain Up
-  </button>
-  <button on:click="{() => gain[displaySetting] = displaySetting === 'heat' ? 3 : 8}"
-    disabled="{displaySetting === 'points'}">
-    Gain Reset
-  </button>
-</div>
 
-<div id="scales">
-  <label for="scale">Scale:</label><input type="number" id="scale" bind:value={scale}>
-  <label for="offset-x">Offset X:</label><input type="number" id="offset-x" bind:value={offsetX}>
-  <label for="offset-y">Offset Y:</label><input type="number" id="offset-y" bind:value={offsetY}>
-  <label for="gain">Gain:</label><input type="number" id="gain" bind:value={gain}>
-</div>
 
 <style>
   canvas {
     background-size: cover;
     background-color: black;
     border-radius: 1rem;
+  }
+
+  #container {
+    margin-top: 0.7rem;
+    margin-right: 0.7rem;
+    max-width: 500px;
+  }
+
+  #settings {
+    display: flex;
+  }
+
+  #settings button {
+    margin-left: 0.5rem;
+  }
+
+  #display-mode {
+    flex-grow: 2;
   }
 
   #scales {

@@ -1,4 +1,5 @@
 <script>
+  import HeatMap from './HeatMap.svelte';
   import { parsedFiles, points, mapName} from '../store.js'
   import mapData from '../mapdata.js';
 
@@ -109,62 +110,198 @@
 
 </script>
 
-<label for="files">Demo Files</label>
-<select multiple id="files" bind:value={selectedFiles}>
-  {#each $parsedFiles as file}
-    <option value={file}>
-      {file.fileName} - {file.mapName}
-    </option>
-  {/each}
-</select>
+<div id="file-list" class="group">
+  <label for="files">Demo Files:</label>
+  <select multiple id="files" bind:value={selectedFiles}>
+    {#each $parsedFiles as file}
+      <option value={file}>
+        {file.fileName} - {file.mapName}
+      </option>
+    {/each}
+  </select>
+</div>
 
-<label for="map">Map:</label>
-<select id="map" bind:value={$mapName}>
-  {#each Object.keys(mapData) as map}
-    <option value={map} disabled={!maps.has(map)}>
-      {map}
-    </option>
-  {/each}
-</select>
+<div class="container">
+  <div id="side-bar">
+    <div class="group">
+      <label for="map">Map:</label>
+      <select id="map" bind:value={$mapName}>
+        {#each Object.keys(mapData) as map}
+          <option value={map} disabled={!maps.has(map)}>
+            {map}
+          </option>
+        {/each}
+      </select>
+    </div>
 
-<br>
+    <div class="group">
+      <label for="players">Players:</label>
+      <select id="players" bind:value={selectedPlayer}>
+        <option value={false}>All</option>
+        {#each players as player}
+          <option value={player.id}>
+            {player.name}
+          </option>
+        {/each}
+      </select>
+      <div class="sub-group">
+        <button on:click="{() => {group = 0; runFilters()}}" disabled={!selectedPlayer}
+        class:selected="{selectedPlayer && group === 0}">Solo</button>
+        <button on:click="{() => {group = 1; runFilters()}}" disabled={!selectedPlayer}
+          class:selected="{selectedPlayer && group === 1}">Team</button>
+        <button on:click="{() => {group = 2; runFilters()}}" disabled={!selectedPlayer}
+          class:selected="{selectedPlayer && group === 2}">Opponents</button>
+      </div>
+    </div>
 
-<label for="players">Players</label>
-<select id="players" bind:value={selectedPlayer}>
-  <option value={false}>All</option>
-  {#each players as player}
-    <option value={player.id}>
-      {player.name}
-    </option>
-  {/each}
-</select>
-<button on:click="{() => {group = 0; runFilters()}}" disabled={!selectedPlayer}
-  class:selected="{selectedPlayer && group === 0}">Solo</button>
-<button on:click="{() => {group = 1; runFilters()}}" disabled={!selectedPlayer}
-  class:selected="{selectedPlayer && group === 1}">Team</button>
-<button on:click="{() => {group = 2; runFilters()}}" disabled={!selectedPlayer}
-  class:selected="{selectedPlayer && group === 2}">Opponents</button>
+    <div class="group">
+      <span class="label">Metrics:</span>
+      <div class="v-sub-group">
+        <button on:click="{() => {metric = 0; runFilters()}}" class:selected="{metric === 0}">
+          Kills
+        </button>
+        <button on:click="{() => {metric = 2; runFilters()}}" class:selected="{metric === 2}">
+          Deaths
+        </button>
+      </div>
+      <div class="v-sub-group">
+        <button on:click="{() => {metric = 1; runFilters()}}" class:selected="{metric === 1}">
+          Damage Dealt
+        </button>
+        <button on:click="{() => {metric = 3; runFilters()}}" class:selected="{metric === 3}">
+          Damage Taken
+        </button>
+      </div>
+    </div>
 
-<br>
+    <div class="group">
+      <span class="label">Team:</span>
+      <button on:click="{() => {team = 0; runFilters()}}" class:selected="{team === 0}">T</button>
+      <button on:click="{() => {team = 1; runFilters()}}" class:selected="{team === 1}">CT</button>
+      <button on:click="{() => {team = false; runFilters()}}" class:selected="{team === false}">All</button>
+    </div>
+    
+    <div class="group" id="stats">
+      <span class="label">Stats:</span>
+      <div class="stat">
+        <span class="no">
+          {total}
+        </span>
+        total {['kills', 'damage dealt', 'deaths', 'damage taken'][metric]}
+      </div>
+      <div class="stat">
+        <span class="no">
+          {games}
+        </span>
+        games {#if wins !== false}({wins} win{wins > 1 ? 's' : ''}){/if}
+      </div>
+      <div class="stat">
+        <span class="no">
+          {rounds}
+        </span>
+        rounds {#if roundWins !== false}({roundWins} win{roundWins > 1 ? 's' : ''}){/if}
+      </div>
+    </div>
+  </div>
 
-<button on:click="{() => {metric = 0; runFilters()}}" class:selected="{metric === 0}">Kills</button>
-<button on:click="{() => {metric = 1; runFilters()}}" class:selected="{metric === 1}">Damage Dealt</button>
-<br>
-<button on:click="{() => {metric = 2; runFilters()}}" class:selected="{metric === 2}">Deaths</button>
-<button on:click="{() => {metric = 3; runFilters()}}" class:selected="{metric === 3}">Damage Taken</button>
+  <HeatMap />
+</div>
 
-<br>
 
-<button on:click="{() => {team = 0; runFilters()}}" class:selected="{team === 0}">T</button>
-<button on:click="{() => {team = 1; runFilters()}}" class:selected="{team === 1}">CT</button>
-<button on:click="{() => {team = false; runFilters()}}" class:selected="{team === false}">All</button>
+<style>
+  #file-list, #files {
+    width: 100%;
+  }
 
-<br>
+  .container {
+    display: flex;
+    justify-content: center;
+  }
 
-<p>
-  {total} total {['kills', 'damage dealt', 'deaths', 'damage taken'][metric]}
-  <br>
-  {games} games {#if !isNaN(wins)}({wins} wins){/if}
-  <br>
-  {rounds} rounds {#if !isNaN(roundWins)}({roundWins} wins){/if}
-</p>
+  #side-bar {
+    min-width: 280px;
+    max-width: 500px;
+    order: 3;
+    flex-shrink: 1;
+  }
+
+  @media only screen and (max-width: 820px) {
+    .container {
+      flex-direction: column;
+      align-items: center;
+    }
+
+    #side-bar {
+      order: 0;
+      flex-shrink: 0;
+      flex-grow: 2;
+    }
+  }
+
+  .group, .sub-group {
+    width: 100%;
+    position: relative;
+    display: flex;
+    flex-wrap: wrap;
+  }
+
+  .group {
+    margin-top: 0.8em;
+    border: 1px solid #273233;
+    border-radius: 0.2rem;
+    padding: 0 0.3rem;
+    padding-top: 0.7em;
+  }
+
+  .group select {
+    width: 100%;
+    margin-bottom: 0.3em;
+  }
+
+  .group button {
+    display: block;
+    flex-grow: 2;
+    margin-bottom: 0.3em;
+  }
+
+  .group button:not(:last-child) {
+    margin-right: 0.2em;
+  }
+
+  .group label, .group .label {
+    position: absolute;
+    top: -0.8em;
+    left: 0.5em;
+    padding: 0 0.2em;
+    background-color: #374a50;
+  }
+
+  .v-sub-group {
+    display: flex;
+    flex-direction: column;
+    flex-grow: 2;
+  }
+
+  .v-sub-group:not(:last-child) {
+    margin-right: 0.2rem;
+  }
+
+  .v-sub-group button {
+    width: 100%;
+  }
+
+  #stats {
+    text-align: center;
+    flex-direction: column;
+    padding-bottom: 0.4em;
+  }
+
+  .stat {
+    font-size: 1.2em;
+  }
+
+  .stat .no {
+    font-size: 1.4em;
+    font-weight: bold;
+  }
+</style>
