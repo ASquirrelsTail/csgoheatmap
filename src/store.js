@@ -11,7 +11,7 @@ toasts.push = function(message, type) {
     $toasts.push({message, type});
     return $toasts;
   });
-  setTimeout(() => this.pop(), 2000);
+  setTimeout(() => this.pop(), 3000);
 }
 toasts.pop = function() {
   this.update($toasts => $toasts.slice(1));

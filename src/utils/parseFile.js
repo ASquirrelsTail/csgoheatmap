@@ -103,6 +103,12 @@ export default function parseFile(file) {
     // Load file in to buffer and parse
     const fr = new FileReader();
     fr.readAsArrayBuffer(file);
-    fr.onloadend = () => demoFile.parse(Buffer(fr.result));
+    fr.onloadend = () => {
+      try {
+        demoFile.parse(Buffer(fr.result));
+      } catch {
+        reject(`Something went wrong while parsing ${file.name}`);
+      }
+    };
   });
 }

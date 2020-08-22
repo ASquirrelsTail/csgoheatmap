@@ -93,6 +93,7 @@ hr {
 	border-radius: 2px;
 	margin-left: auto;
 	margin-bottom: 0.2rem;
+	padding: 0.2rem;
 }
 
 .toast.error {
