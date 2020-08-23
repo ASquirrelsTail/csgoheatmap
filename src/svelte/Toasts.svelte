@@ -3,16 +3,16 @@
   import { toasts } from '../store.js';
 </script>
 
-<div class="toast-container">
+<div id="toast-container">
   {#each $toasts as toast (toast)}
-    <div class="toast {toast.type}" in:fly="{{ y: 200, duration: 300 }}" out:fade>
+    <div class="toast {toast.type}" role="status" in:fly="{{ y: 200, duration: 300 }}" out:fade>
       {toast.message}
     </div>
   {/each}
 </div>
 
 <style>
-  .toast-container {
+  #toast-container {
     position: fixed;
     bottom: 0px;
     right: 0px;

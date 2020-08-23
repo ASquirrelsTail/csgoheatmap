@@ -13,16 +13,20 @@
       .filter(file => !$parsedFiles.some(parsed => parsed.fileName === file.name)) // Check files haven't already been parsed, then parse them
       .map(file => parseFile(file));
 
+    // If fewer files are to be parsed then were submitted, then the rest are already parsed
     if (filePromises.length < files.length)
       toasts.push(`${files.length - filePromises.length} demos already parsed.`, 'success');
+
     if (filePromises.length > 0) {
       toasts.push(`Parsing ${filePromises.length} files...`, 'success');
 
+      // As each file is finished push it to the stored parsed files and notify the user
       filePromises.forEach(filePromise => filePromise.then(file => {
         $parsedFiles.push(file);
         $parsedFiles = $parsedFiles;
         toasts.push(`Successfully finished parsing ${file.fileName}.`, 'success');
       }).catch(error => toasts.push(error, 'error')));
+      // Once all files are finished reset the file input, count how many succeded/failed and inform the user then update local storage
       Promise.allSettled(filePromises)
         .then(finishedFiles => {
           parsing = false;
@@ -43,6 +47,7 @@
   }
 
   function dropFiles(e) {
+    // Filters valid files and sends them to be parsed, if no valid files dropped, inform the user
     dragging = false;
     const validFiles = [...e.dataTransfer.files].filter(file => file.name.slice(-4) === '.dem');
     if (validFiles.length > 0) addFiles(validFiles);
@@ -90,6 +95,10 @@
     color: #ccc;
     background-color: #273233;
     outline: none;
+  }
+
+  label:focus-within {
+    outline: -webkit-focus-ring-color auto 1px;
   }
 
   #file-upload {

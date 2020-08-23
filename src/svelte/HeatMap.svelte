@@ -20,12 +20,14 @@
   }
 
   onMount(() => {
+    // Set up simpleheat with canvas
     heat = simpleheat(canvas);
     heat.radius(5, 2);
-    heat.max(gain);
+    heat.max(gain.heat);
   });
 
   function drawPoints() {
+    // Draw points as dots on canvas
     const ctx = canvas.getContext('2d');
     ctx.fillStyle = 'white';
     ctx.globalAlpha = 1;
@@ -37,26 +39,31 @@
   }
 
   function drawShots() {
+    // Draw shots as lines on canvas
     const ctx = canvas.getContext('2d');
+
     ctx.globalCompositeOperation = 'lighter';
     ctx.lineWidth = 1;
     ctx.clearRect(0, 0, 500, 500);
+
     $points.forEach(point => {
-      ctx.globalAlpha = (point.d ? Math.max(point.d/100, 1) : 1) / gain.shots;
+      ctx.globalAlpha = (point.d ? Math.max(point.d/100, 1) : 1) / gain.shots; // Adjust alpha based on a shot's damage if it has a damage property
       const playerPos = translateCoords(point.pp);
       if (point.ap) {
         const attackerPos = translateCoords(point.ap);
+        // Create a gradient between the player and their attacker's positions
         const gradient = ctx.createLinearGradient(...playerPos, ...attackerPos);
         gradient.addColorStop('0', '#f73503');
         gradient.addColorStop('0.5', '#d8d50f');
         gradient.addColorStop('1' ,'#19c917');
         ctx.strokeStyle = gradient;
+        // Draw the line
         ctx.beginPath();
         ctx.moveTo(...attackerPos);
         ctx.lineTo(...playerPos);
         ctx.stroke();
       } else {
-        // Draw grenades as Xs
+        // Draw points without attacking players (eg. grenades and world deaths) as Xs
         ctx.strokeStyle = '#f73503';
         ctx.beginPath();
         ctx.moveTo(playerPos[0] - 2, playerPos[1] - 2);
@@ -92,7 +99,7 @@
 
 <div id="container">
   <canvas width=500 height=500 bind:this={canvas}
-  style="background-image: {mapData[$mapName] ? `url(./images/${$mapName}.jpg)` : 'none'};"></canvas>
+  style="{mapData[$mapName] ? `background-image: url(./images/${$mapName}.jpg)` : ''};"></canvas>
   <div id="settings">
     <select name="display" id="display-mode" bind:value={displaySetting}>
       <option value="heat">Heatmap</option>
@@ -125,6 +132,7 @@
   canvas {
     background-size: cover;
     background-color: black;
+    background-image: url('../images/blank.jpg');
     border-radius: 1rem;
   }
 

@@ -117,6 +117,10 @@
       <option value={file}>
         {file.fileName} - {file.mapName}
       </option>
+    {:else}
+    <option value="" disabled="" class="empty">
+      No demo files - Click and drag or select upload demo files to begin.
+    </option>
     {/each}
   </select>
 </div>
@@ -211,6 +215,10 @@
 <style>
   #file-list, #files {
     width: 100%;
+  }
+
+  .empty {
+    text-align: center;
   }
 
   .container {

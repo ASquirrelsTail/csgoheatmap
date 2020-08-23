@@ -52,7 +52,6 @@ input:disabled {
 button {
 	color: #ccc;
 	background-color: #273233;
-	outline: none;
 }
 
 button:disabled {
