@@ -20,91 +20,96 @@
   let roundWins = 0;
 
   function runFilters() {
+    // Filter events and agregate stats
+
+    // Sort metrics
     const metricSet = metric % 2 ? 'hits' : 'deaths';
     const dealt = !Math.floor(metric / 2);
     const role = dealt ? 'a' : 'p';
 
-    const filteredFiles = filesToFilter.filter(file => file.mapName === $mapName &&
-                              (!selectedPlayer || selectedPlayer in file.players));
-    
-    // If a specific player's team or opponents are selected
-    if (selectedPlayer && group > 0) {
-      $points = [].concat(...filteredFiles.map(file => {
-        let playerTeam;
-        if (group === 1) playerTeam = file.players[selectedPlayer].team;
-        else playerTeam = (file.players[selectedPlayer].team + 1) % 2;
-        let teamPlayers = Object.keys(file.players)
-                                .filter(playerId => file.players[playerId].team === playerTeam)
-                                .map(playerId => parseInt(playerId));
-        if (team === false) // Use all team data
-          return file[metricSet][0].concat(file[metricSet][1])
-                                   .filter(event => teamPlayers.includes(event[role]));
-        else // Select team
-          return file[metricSet][(dealt + team) % 2].filter(event => teamPlayers.includes(event[role])); 
-      }));
-    } else {
-      // Select events type, deaths/hits and team, t/ct/all
-      let events;
-      if (team === false) // Use all team data
-        events = filteredFiles.map(file => file[metricSet][0].concat(file[metricSet][1]));
-      else // Select team
-        events = filteredFiles.map(file => file[metricSet][(dealt + team) % 2]); // Invert team if we are looking at damage dealt
-      if (selectedPlayer) $points = [].concat(...events).filter(event => event[role] === selectedPlayer);
-      else $points = [].concat(...events)
-    }
-    
-    // Pull stats
-    total = $points.reduce((acc, point) => acc + (point.d ? point.d : 1), 0);
-    games = filteredFiles.length;
-    if (!selectedPlayer) {
-      rounds = filteredFiles.reduce((acc, game) => acc + game.rounds, 0);
-      wins = false;
-      roundWins = false;
-    } else {
-      wins = filteredFiles.reduce((acc, game) =>
-                ((game.players[selectedPlayer].team === game.winner && group !== 2) ||
-                 (game.players[selectedPlayer].team !== game.winner && group === 2)) ?
-                acc + 1 : acc, 0);
-      if (team === false) {
-        rounds = filteredFiles.reduce((acc, game) => acc + game.rounds, 0);
-        roundWins = filteredFiles.reduce((acc, game) => {
-          let playerTeam;
-          if (group === 2) playerTeam = (game.players[selectedPlayer].team + 1) % 2;
-          else playerTeam = game.players[selectedPlayer].team;
-          return game.scores[playerTeam].ct + game.scores[playerTeam].t + acc;
-        }, 0);
-      } else {
-        rounds = filteredFiles.reduce((acc, game) => {
-          if (game.rounds < 15) {
-            if ((team === game.players[selectedPlayer].team && group !== 2) ||
-                (team !== game.players[selectedPlayer].team && group === 2))
-              return acc + game.rounds;
-            else return acc;
+    // Reduce files to event points and stats
+    ({$points, games, wins, rounds, roundWins} = filesToFilter.reduce((results, file) => {
+      // Select only files with the selected map and player
+      if (file.mapName === $mapName && (!selectedPlayer || selectedPlayer in file.players)) {
+
+        results.games++;
+
+        let events = [];
+
+        let selectedTeam; // If a player is specified, choose the player or opposition team
+        if (selectedPlayer) {
+          if (group === 2) selectedTeam = (file.players[selectedPlayer].team + 1) % 2; // If opposition is selected invert team
+          else selectedTeam = file.players[selectedPlayer].team;
+
+          if (file.winner === selectedTeam) results.wins++; // If the selected team won add a win
+
+          // Choose players, either just selected player, or the entire selected team
+          let selectedPlayers = Object.keys(file.players)
+                                  .reduce((players, id) => {
+            if ((group === 0 && parseInt(id) === selectedPlayer) ||
+                (group > 0 && file.players[id].team === selectedTeam))
+                  players.push(parseInt(id));
+            return players;
+          }, []);
+
+          if (team !== false) {// If a team is selected choose just the player's events from that team
+            events = file[metricSet][(dealt + team) % 2]
+                         .filter(event => selectedPlayers.includes(event[role]));
+
+            // If the game abandoned before team switch only add that teams rounds if they played that side
+            if (file.rounds < 15 && team === selectedTeam)
+                results.rounds +=  file.rounds;
+            else if (team !== selectedTeam) // If the selected team played that side first add 15 rounds
+              results.rounds += 15;
+            else results.rounds += file.rounds - 15; // Otherwise the remaining rounds
+            results.roundWins += (team === 1 ? file.scores[selectedTeam].ct : file.scores[selectedTeam].t);
+
+          } else {
+            events = file[metricSet][0] // Otherwise select from both
+                         .concat(file[metricSet][1])
+                         .filter(event => selectedPlayers.includes(event[role]));
+
+            results.rounds += file.rounds; // Use all rounds and wins for that team
+            results.roundWins += file.scores[selectedTeam].ct + file.scores[selectedTeam].t;
           }
-          if ((team !== game.players[selectedPlayer].team && group !== 2) ||
-              (team === game.players[selectedPlayer].team && group === 2))
-            return 15 + acc;
-          else return game.rounds - 15 + acc;
-        }, 0);
-        roundWins = filteredFiles.reduce((acc, game) => {
-          let playerTeam;
-          if (group === 2) playerTeam = (game.players[selectedPlayer].team + 1) % 2;
-          else playerTeam = game.players[selectedPlayer].team;
-          return (team === 1 ? game.scores[playerTeam].ct : game.scores[playerTeam].t) + acc;
-        }, 0);
+          
+        } else {
+          results.rounds += file.rounds; // Otherwise use all rounds
+          if (team !== false)
+            events = file[metricSet][(dealt + team) % 2]; // And selected team events
+          else
+            events = file[metricSet][0]
+                         .concat(file[metricSet][1]); // Or all events
+        }
+        results.$points = results.$points.concat(events);
+
       }
-    }
+      return results;
+    }, {$points: [],
+        games: 0,
+        wins: selectedPlayer ? 0 : false, // Wins false if both teams included
+        rounds: 0,
+        roundWins:  selectedPlayer ? 0 : false
+    }));
+
+    total = $points.reduce((acc, point) => acc + (point.d ? point.d : 1), 0);
   }
 
   $: {
-    filesToFilter = selectedFiles.length ? selectedFiles : $parsedFiles;
-    maps = new Set(filesToFilter.map(file => file.mapName));
+    filesToFilter = selectedFiles.length ? selectedFiles : $parsedFiles; // Use selected files, or all if none selected
+    maps = new Set(filesToFilter.map(file => file.mapName)); // Allow only available maps
+    //select the first file's map if nothing selected
     if ((!$mapName || !maps.has($mapName)) && filesToFilter.length > 0) $mapName = filesToFilter[0].mapName;
+
+    // Filter available players by those in selected files/maps
     players = Object.entries(Object.assign({}, ...filesToFilter.filter(file => file.mapName === $mapName)
                                                             .map(file => file.players)))
       .map(player => { return {id: parseInt(player[0]), name: player[1].name}})
       .filter(player => player.id > 40);
+
+    // Default to no player selected if they aren't in filtered players
     if (!players.some(player => player.id === selectedPlayer)) selectedPlayer = false;
+
     runFilters();
   }
 
