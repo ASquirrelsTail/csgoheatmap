@@ -4,9 +4,9 @@ Visualize data from CSGO demos as map overlays showing kills and deaths. Combine
 
 [Try it here](https://asquirrelstail.github.io/csgoheatmap/public/)
 
-![alt text](https://raw.githubusercontent.com/ASquirrelsTail/csgoheatmap/blob/master/public/images/screengrab1.jpg "Heatmap overlay")
+![alt text](https://raw.githubusercontent.com/ASquirrelsTail/csgoheatmap/master/public/images/screengrab1.jpg "Heatmap overlay")
 
-![alt text](https://raw.githubusercontent.com/ASquirrelsTail/csgoheatmap/blob/master/public/images/screengrab2.jpg "Shots overlay")
+![alt text](https://raw.githubusercontent.com/ASquirrelsTail/csgoheatmap/master/public/images/screengrab2.jpg "Shots overlay")
 
 ## Tech
 
